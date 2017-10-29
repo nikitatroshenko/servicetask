@@ -30,11 +30,6 @@ int main(int argc, char const **argv)
 	bytes_to_hex_str(digest, MD5_DIGEST_LENGTH, digest_str);
 	log_record(stderr, digest_str);
 
-	// for (i = 0; i < MD5_DIGEST_LENGTH; i++) {
-	// 	printf("%2x", digest[i]);
-	// }
-	// printf("\n");
-
 	return EXIT_SUCCESS;
 }
 
