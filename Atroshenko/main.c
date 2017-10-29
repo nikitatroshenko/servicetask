@@ -1,8 +1,10 @@
 #include "err_handling.h"
+#include "config.h"
+
 #include <errno.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <openssl/md5.h>
+#include <string.h>
 #include <time.h>
 
 #define DEFAULT_FILE_BUF_SIZE 512
@@ -17,8 +19,15 @@ int main(int argc, char const **argv)
 	unsigned char digest[MD5_DIGEST_LENGTH];
 	char digest_str[2 * MD5_DIGEST_LENGTH + 1];
 	FILE *in = fopen(argv[1], "rb");
+	struct configuration *conf = load_config(argv[2]);
 
 	if (in == NULL) {
+		log_error();
+		return errno;
+	}
+
+	if (conf == NULL) {
+		log_error();
 		return errno;
 	}
 
@@ -29,8 +38,12 @@ int main(int argc, char const **argv)
 
 	bytes_to_hex_str(digest, MD5_DIGEST_LENGTH, digest_str);
 	log_record(stderr, digest_str);
+	log_record(stderr, conf->target_path);
+	log_record(stderr, conf->log_path);
 
-	return EXIT_SUCCESS;
+	free_config(conf);
+
+	return 0;
 }
 
 int get_file_md5(FILE *in, unsigned char *digest)

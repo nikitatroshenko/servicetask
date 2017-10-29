@@ -3,7 +3,7 @@ project(servicetask)
 
 set(CMAKE_C_STANDARD 89)
 
-set(SOURCE_FILES main.c err_handling.c)
+set(SOURCE_FILES main.c config.c err_handling.c ini.c)
 set(EXECUTABLE_NAME servicetask)
 add_definitions(-DEXECUTABLE_NAME="${EXECUTABLE_NAME}")
 add_executable(servicetask ${SOURCE_FILES})
@@ -15,3 +15,6 @@ if(OpenSSL_FOUND)
     message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
     target_link_libraries(servicetask ${OPENSSL_LIBRARIES})
 endif()
+
+# INIH configuration
+add_definitions(-DINI_USE_STACK=0)

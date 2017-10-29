@@ -15,17 +15,20 @@
 
 // primitive error message lookup
 static const char *lookup_custom_error(int err) {
-	if (err == EBADARGS) {
+	if (err == EBADARGS)
 		return EBADARGS_MSG;
-	} else if (err == EBADMD5) {
+	else if (err == EBADMD5)
 		return EBADMD5_MSG;
-	} else if (err == EBADCRC32) {
+	else if (err == EBADCRC32)
 		return EBADCRC32_MSG;
-	} else if (err == EHASHMISMATCH) {
+	else if (err == EHASHMISMATCH)
 		return EHASHMISMATCH_MSG;
-	} else if (err == EOPENSSLFAIL) {
+	else if (err == EOPENSSLFAIL)
 		return EOPENSSLFAIL_MSG;
-	}
+	else if (err == EFAILINIREAD)
+		return EFAILINIREAD_MSG;
+	else if (err == ENOCONFIG)
+		return ENOCONFIG_MSG;
 }
 
 void log_error() {
