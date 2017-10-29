@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.8)
 project(servicetask)
 
-set(CMAKE_C_STANDARD 89)
+set(CMAKE_C_STANDARD 90)
 
-set(SOURCE_FILES main.c config.c err_handling.c ini.c)
+set(SOURCE_FILES main.c config.c err_handling.c ini.c listen_changes.c)
 set(EXECUTABLE_NAME servicetask)
 add_definitions(-DEXECUTABLE_NAME="${EXECUTABLE_NAME}")
 add_executable(servicetask ${SOURCE_FILES})

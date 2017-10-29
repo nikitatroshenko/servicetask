@@ -1,5 +1,6 @@
 #include "err_handling.h"
 #include "config.h"
+#include "listen_changes.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -9,38 +10,41 @@
 
 #define DEFAULT_FILE_BUF_SIZE 512
 
+struct file_change_handling_data {
+	FILE *log;
+	FILE *target;
+};
+
 static int get_file_md5(FILE *in, unsigned char *digest);
 static void bytes_to_hex_str(unsigned char *bytes, size_t len, char *buf);
 static void log_record(FILE *out, const char *record);
+static void file_change_handling_routine(void *data);
 
 int main(int argc, char const **argv)
 {
 	size_t i;	/* loop counter */
-	unsigned char digest[MD5_DIGEST_LENGTH];
-	char digest_str[2 * MD5_DIGEST_LENGTH + 1];
-	FILE *in = fopen(argv[1], "rb");
-	struct configuration *conf = load_config(argv[2]);
-
-	if (in == NULL) {
-		log_error();
-		return errno;
-	}
+	struct file_change_handling_data routine_data;
+	struct configuration *conf = load_config(argv[1]);
+	struct listen_ctx *listen_ctx;
 
 	if (conf == NULL) {
 		log_error();
 		return errno;
 	}
 
-	if (!get_file_md5(in, digest)) {
+	routine_data.log = fopen(conf->log_path, "at");
+	routine_data.target = fopen(conf->target_path, "rt");
+
+	if (routine_data.log == NULL || routine_data.target == NULL) {
 		log_error();
 		return errno;
 	}
 
-	bytes_to_hex_str(digest, MD5_DIGEST_LENGTH, digest_str);
-	log_record(stderr, digest_str);
-	log_record(stderr, conf->target_path);
-	log_record(stderr, conf->log_path);
-
+	listen_ctx = start_listen_changes(
+			conf->target_path,
+			file_change_handling_routine,
+			&routine_data);
+	stop_listen_changes(listen_ctx);
 	free_config(conf);
 
 	return 0;
@@ -79,7 +83,7 @@ void bytes_to_hex_str(unsigned char *bytes, size_t len, char *buf)
 	size_t i;
 
 	for (i = 0; i < len; i++) {
-		sprintf(buf, "%2x", bytes[i]);
+		sprintf(buf, "%02x", bytes[i]);
 		buf += 2;
 	}
 }
@@ -92,7 +96,7 @@ void log_record(FILE *out, const char *record)
 	time(&rawtime);
 	tm = localtime(&rawtime);
 
-	fprintf(out, "[%4d.%2d.%2d %2d:%2d:%2d] %s\n",
+	fprintf(out, "[%4d.%02d.%02d %02d:%02d:%02d] %s\n",
 			tm->tm_year + 1900,
 			tm->tm_mon + 1,
 			tm->tm_mday,
@@ -100,4 +104,19 @@ void log_record(FILE *out, const char *record)
 			tm->tm_min,
 			tm->tm_sec,
 			record);
+}
+
+void file_change_handling_routine(void *data)
+{
+	struct file_change_handling_data *routine_data = data;
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	char digest_str[2 * MD5_DIGEST_LENGTH + 1];
+
+	if (!get_file_md5(routine_data->target, digest))
+		log_error();
+
+	bytes_to_hex_str(digest, MD5_DIGEST_LENGTH, digest_str);
+	log_record(routine_data->log, digest_str);
+
+	fflush(routine_data->log);
 }

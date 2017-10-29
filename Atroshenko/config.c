@@ -18,7 +18,7 @@ static int config_prop_handler(
 	const char *value)
 {
 
-	struct configuration *conf = (struct configuration *) user;
+	struct configuration *conf = user;
 
 	if (strncmp(section, "", 1))
 		return 0; /* Needed configuration is in default section */
