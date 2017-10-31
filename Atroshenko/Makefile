@@ -20,8 +20,10 @@ install: cmake_build demo_files
 	chmod +x $(DAEMON_SCRIPT)
 	chown root:root $(DAEMON_SCRIPT)
 	chown root:root $(DAEMON_INI_FILE)
+	update-rc.d $(EXECUTABLE) defaults
 
 uninstall:
+	update-rc.d -f $(EXECUTABLE) remove
 	rm -f $(DAEMON_SCRIPT) $(INSTALL_DIR)/$(EXECUTABLE)
 
 cmake_make:
