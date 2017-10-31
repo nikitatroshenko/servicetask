@@ -9,13 +9,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define INOTIFY_EVENT_SIZE (sizeof (struct inotify_event) + NAME_MAX + 1)
+
 struct listen_ctx {
 	int inotify_fd;
 	int watch_fd;
 };
 
-static void free_preserve_errno(void *mem);
-static void close_preserve_errno(int fd);
+static void dispose_listen_ctx(struct listen_ctx *ctx);
+static void dispose_listen_ctx_preserve_errno(struct listen_ctx *ctx);
 
 struct listen_ctx *start_listen_changes(
 		const char *path,
@@ -27,7 +29,7 @@ struct listen_ctx *start_listen_changes(
 
 	ctx->inotify_fd = inotify_init();
 	if (ctx->inotify_fd == -1) {
-		free_preserve_errno(ctx);
+		dispose_listen_ctx_preserve_errno(ctx);
 		return NULL;
 	}
 	ctx->watch_fd = inotify_add_watch(
@@ -35,34 +37,39 @@ struct listen_ctx *start_listen_changes(
 				path,
 				IN_CLOSE_WRITE);
 	if (ctx->watch_fd == -1) {
-		close_preserve_errno(ctx->inotify_fd);
-		free_preserve_errno(ctx);
+		dispose_listen_ctx_preserve_errno(ctx);
 		return NULL;
 	}
 
 	while (1) {
-		read(ctx->inotify_fd, &event, sizeof event + NAME_MAX + 1);
+		int bytes_read = read(ctx->inotify_fd, &event, INOTIFY_EVENT_SIZE);
+
+		if (bytes_read == -1 || bytes_read == 0) {
+			dispose_listen_ctx_preserve_errno(ctx);
+			return NULL;
+		}
+
 		callback(data);
 	}
+
+	return ctx;
 }
 
 void stop_listen_changes(struct listen_ctx *ctx)
 {
-	inotify_rm_watch(ctx->inotify_fd, ctx->watch_fd);
+	dispose_listen_ctx(ctx);
+}
+
+void dispose_listen_ctx(struct listen_ctx *ctx)
+{
 	close(ctx->inotify_fd);
 	free(ctx);
 }
 
-void free_preserve_errno(void *mem) {
+void dispose_listen_ctx_preserve_errno(struct listen_ctx *ctx)
+{
 	int err = errno;
 
-	free(mem);
-	errno = err;	
-}
-
-void close_preserve_errno(int fd) {
-	int err = errno;
-
-	close(fd);
+	dispose_listen_ctx(ctx);
 	errno = err;
 }
