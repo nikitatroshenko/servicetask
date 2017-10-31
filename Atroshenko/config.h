@@ -6,6 +6,8 @@ struct configuration {
 	char *log_path;
 };
 
+struct configuration *load_default_config();
+
 struct configuration *load_config(const char *path);
 
 void free_config(struct configuration *conf);

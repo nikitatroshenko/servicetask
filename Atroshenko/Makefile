@@ -2,18 +2,16 @@ BUILD_DIR=build
 INSTALL_DIR=/usr/sbin
 INI_FILE=servicetask.ini
 EXECUTABLE=servicetask
-DAEMON_INI_FILE=/etc/default/servicetask.ini
+DAEMON_INI_FILE=/etc/default/servicetask
 DAEMON_SCRIPT=/etc/init.d/servicetask
 
 all: cmake_build
 
-start-daemon: cmake_build
-
-
 demo_files:
 	echo log_path=`pwd`/service_log > $(INI_FILE)
 	echo target_path=`pwd`/target >> $(INI_FILE)
-	echo foobar >> target
+	touch target
+	touch service_log
 
 install: cmake_build demo_files
 	cp $(BUILD_DIR)/$(EXECUTABLE) $(INSTALL_DIR)
@@ -22,7 +20,6 @@ install: cmake_build demo_files
 	chmod +x $(DAEMON_SCRIPT)
 	chown root:root $(DAEMON_SCRIPT)
 	chown root:root $(DAEMON_INI_FILE)
-	$(EXECUTABLE) start
 
 uninstall:
 	rm -f $(DAEMON_SCRIPT) $(INSTALL_DIR)/$(EXECUTABLE)

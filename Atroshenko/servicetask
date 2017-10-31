@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Description of the service"
 NAME=servicetask
 DAEMON=/usr/sbin/$NAME
-DAEMON_ARGS=/etc/default/$NAME.ini
+DAEMON_ARGS=
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -30,7 +30,9 @@ SCRIPTNAME=/etc/init.d/$NAME
 [ -x "$DAEMON" ] || exit 0
 
 # Read configuration variable file if it is present
+set -a
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
+set +a
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
@@ -94,7 +96,9 @@ do_reload() {
 	# restarting (for example, when it is sent a SIGHUP),
 	# then implement that here.
 	#
-	start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
+
+	#using SIGTERM by default
+	start-stop-daemon --stop --quiet --pidfile $PIDFILE --name $NAME
 	return 0
 }
 

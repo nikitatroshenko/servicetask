@@ -11,6 +11,8 @@
 
 #define DEFAULT_FILE_BUF_SIZE 512
 
+#define CONFIG_ARG "--config"
+
 struct file_change_handling_data {
 	FILE *log;
 	FILE *target;
@@ -27,25 +29,48 @@ int main(int argc, char const **argv)
 	struct file_change_handling_data routine_data;
 	struct listen_ctx *listen_ctx;
 	struct configuration *conf = NULL;
+	size_t config_arg = -1;
 
 	go_background();
 
-	if (argc >= 2) {
-		conf = load_config(argv[1]);	
+	for (i = 0; i < argc; i++) {
+		fprintf(stderr, "Argument '%s'\n", argv[i]);
+		if (!strncmp(CONFIG_ARG, argv[i], strlen(CONFIG_ARG)))
+			config_arg = i + 1;
 	}
 
-	if (conf == NULL) {
+	fprintf(stderr, "Config arg: %d\n", config_arg);
+
+	if (config_arg < argc) {
+		fprintf(stderr, "loading config %s\n", argv[1]);
+		conf = load_config(argv[config_arg]);	
+	} else {
+		fprintf(stderr, "loading default config\n");
+		conf = load_default_config();
+	}
+
+	fprintf(stderr, "Loaded\n");
+	fprintf(stderr, "Read config: log_path=%s\ntarget_path=%s\n", conf->log_path, conf->target_path);
+
+	if (conf == NULL || conf->log_path == NULL
+			|| conf->target_path == NULL) {
+
 		log_error();
+		fprintf(stderr, "Config is null\n");
 		return errno;
 	}
+
 
 	routine_data.log = fopen(conf->log_path, "at");
 	routine_data.target = fopen(conf->target_path, "rt");
 
 	if (routine_data.log == NULL || routine_data.target == NULL) {
+		fprintf(stderr, "Config data null\n");
 		log_error();
 		return errno;
 	}
+
+	fprintf(stderr, "Starting listen\n");
 
 	listen_ctx = start_listen_changes(
 			conf->target_path,
@@ -54,8 +79,11 @@ int main(int argc, char const **argv)
 
 	while (1) {}
 
+	fprintf(stderr, "Stopping listen\n");
 	stop_listen_changes(listen_ctx);
 	free_config(conf);
+
+	fprintf(stderr, "Exiting\n");
 
 	return 0;
 }

@@ -51,6 +51,21 @@ struct configuration *load_config(const char *path)
 	return (rc != 0) ? NULL : conf;
 }
 
+struct configuration *load_default_config()
+{
+	struct configuration *conf = calloc(1, sizeof *conf);
+	const char *log_path = getenv(CONF_LOG_PATH);
+	const char *target_path = getenv(CONF_TARGET_PATH);
+
+	perror(log_path);
+	perror(target_path);
+
+	conf->log_path = (log_path == NULL) ? NULL : strdup(log_path);
+	conf->target_path = (target_path == NULL) ? NULL : strdup(target_path);
+
+	return conf;
+}
+
 void free_config(struct configuration *conf)
 {
 	free(conf->log_path);
