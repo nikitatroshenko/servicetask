@@ -155,17 +155,6 @@ struct listen_ctx *start_listen_changes(
 
 	add_async_signal_handler(ctx);
 
-	while (1) {
-		// int bytes_read = read(ctx->inotify_fd, &event, INOTIFY_EVENT_SIZE);
-
-		// if (bytes_read == -1 || bytes_read == 0) {
-		// 	dispose_listen_ctx_preserve_errno(ctx);
-		// 	return NULL;
-		// }
-
-		// callback(data);
-	}
-
 	return ctx;
 }
 

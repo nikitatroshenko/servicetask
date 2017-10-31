@@ -44,6 +44,9 @@ int main(int argc, char const **argv)
 			conf->target_path,
 			file_change_handling_routine,
 			&routine_data);
+
+	while (1) {}
+
 	stop_listen_changes(listen_ctx);
 	free_config(conf);
 
