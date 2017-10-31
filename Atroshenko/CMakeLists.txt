@@ -3,7 +3,7 @@ project(servicetask)
 
 set(CMAKE_C_STANDARD 90)
 
-set(SOURCE_FILES main.c config.c err_handling.c ini.c listen_changes.c)
+set(SOURCE_FILES main.c config.c err_handling.c ini.c listen_changes.c daemonize.c)
 set(EXECUTABLE_NAME servicetask)
 add_executable(servicetask ${SOURCE_FILES})
 

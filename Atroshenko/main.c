@@ -1,5 +1,6 @@
 #include "err_handling.h"
 #include "config.h"
+#include "daemonize.h"
 #include "listen_changes.h"
 
 #include <errno.h>
@@ -24,8 +25,14 @@ int main(int argc, char const **argv)
 {
 	size_t i;	/* loop counter */
 	struct file_change_handling_data routine_data;
-	struct configuration *conf = load_config(argv[1]);
 	struct listen_ctx *listen_ctx;
+	struct configuration *conf = NULL;
+
+	go_background();
+
+	if (argc >= 2) {
+		conf = load_config(argv[1]);	
+	}
 
 	if (conf == NULL) {
 		log_error();

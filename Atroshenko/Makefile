@@ -1,17 +1,31 @@
 BUILD_DIR=build
-INSTALL_DIR=/usr/bin
+INSTALL_DIR=/usr/sbin
 INI_FILE=servicetask.ini
 EXECUTABLE=servicetask
+DAEMON_INI_FILE=/etc/default/servicetask.ini
+DAEMON_SCRIPT=/etc/init.d/servicetask
 
-all: cmake_make cmake_build
+all: cmake_build
+
+start-daemon: cmake_build
+
 
 demo_files:
 	echo log_path=`pwd`/service_log > $(INI_FILE)
 	echo target_path=`pwd`/target >> $(INI_FILE)
 	echo foobar >> target
 
-install: cmake_make cmake_build
+install: cmake_build demo_files
 	cp $(BUILD_DIR)/$(EXECUTABLE) $(INSTALL_DIR)
+	cp $(EXECUTABLE) $(DAEMON_SCRIPT)
+	cp $(INI_FILE) $(DAEMON_INI_FILE)
+	chmod +x $(DAEMON_SCRIPT)
+	chown root:root $(DAEMON_SCRIPT)
+	chown root:root $(DAEMON_INI_FILE)
+	$(EXECUTABLE) start
+
+uninstall:
+	rm -f $(DAEMON_SCRIPT) $(INSTALL_DIR)/$(EXECUTABLE)
 
 cmake_make:
 	[ -d $(BUILD_DIR) ] || mkdir $(BUILD_DIR) && cd $(BUILD_DIR) && cmake .. || true
@@ -23,7 +37,7 @@ cmake_clean:
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && make clean
 
 clean:
-	[ -d $(BUILD_DIR) ] && rm -r $(BUILD_DIR) || true
-	[ -f $(INI_FILE) ] && rm $(INI_FILE) || true
-	[ -f `pwd`/service_log ] && rm `pwd`/service_log || true
-	[ -f `pwd`/target ] && rm `pwd`/target || true
+	rm -rf $(BUILD_DIR)
+	rm -f $(INI_FILE)
+	rm -f `pwd`/service_log
+	rm -f `pwd`/target
